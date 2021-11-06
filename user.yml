@@ -2,14 +2,26 @@
 - name: user
   hosts: demo
   tasks:
-  - name: "Create user"
-    vars:
-      user: ops
-    user:
-      name: "{{ user + (item|string) }}"
-      state: absent
-    become: yes
-    loop: [2,3,4,5,6,7,8,9,10,11]
-    register: out
-  - debug:
-      var: out
+  - name: "Preconfig block"
+    block:
+    - name: "Create user"
+      vars:
+        user: ops3
+      user:
+        name: "{{ user }}"
+        state: present
+      register: error
+    - name: "Install curl"
+      apt:
+        name: curl
+        update-cache: yes
+      register: error
+    become: true
+    rescue:
+    - name: "Some error print"
+      debug:
+        var: error
+    always:
+    - name: "Reboot"
+      debug:
+        msg: "Rebooting!"
